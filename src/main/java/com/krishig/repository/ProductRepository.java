@@ -12,9 +12,9 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
 
-    @Query(value = "SELECT * FROM PRODUCT P WHERE P.CATEGORY_ID =?1", nativeQuery = true)
+    @Query(value = "select * from product p where p.category_id =?1", nativeQuery = true)
     public List<Product> findByCategory(Long categoryId);
 
-    @Query(value = "SELECT * FROM PRODUCT P WHERE P.PRODUCT_NAME LIKE %?1%", nativeQuery = true)
+    @Query(value = "select * from product p where p.product_name like %?1%", nativeQuery = true)
     public List<Product> getProductByFilter(String keyword);
 }
