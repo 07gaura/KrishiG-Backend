@@ -14,7 +14,7 @@
 	<name>krishiG</name>
 	<description>This Project is online shopping for seeds and fertilizer</description>
 	<properties>
-		<java.version>11</java.version>
+		<java.version>17</java.version>
 	</properties>
 	<dependencies>
 		<dependency>

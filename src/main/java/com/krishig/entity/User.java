@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 
 import java.util.List;
 
-/*@Entity
+@Entity
 @Table(name = "USER_DETAILS")
 @Data
 @NoArgsConstructor
@@ -20,11 +20,10 @@ public class User {
     private String lastName;
     private String emailId;
     private String password;
-    private Role roles;
     private String mobilNo;
     private String address;
     private Long pinCode;
     private String tehsil;
     private String city;
     private String state;
-}*/
+}
