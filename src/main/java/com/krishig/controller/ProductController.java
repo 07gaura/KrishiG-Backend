@@ -24,7 +24,6 @@ public class ProductController {
     private CategoryService categoryService;
 
     @GetMapping("/category/{categoryId}")
-    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<List<ProductResDto>> getProductByCategory(@PathVariable("categoryId") Long categoryId) {
         Category category = categoryService.getCategoryById(categoryId);
         List<ProductResDto> lstProduct = productService.getProductByCategory(category);
@@ -32,14 +31,12 @@ public class ProductController {
     }
 
     @GetMapping("/category")
-    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<List<CategoryResDto>> getAllCategory() {
         List<CategoryResDto> lstCategoryRes = categoryService.getAllCategory();
         return ResponseEntity.ok(lstCategoryRes);
     }
 
     @GetMapping("/{keyword}")
-    @CrossOrigin(origins = "http://localhost:3000")
     public ResponseEntity<List<ProductResDto>> getFilterByProduct(@PathVariable("keyword") String keyword) {
         List<ProductResDto> lstProduct = productService.getFilterByProduct(keyword);
         return ResponseEntity.ok(lstProduct);
