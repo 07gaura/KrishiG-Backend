@@ -15,5 +15,5 @@ public interface CartItemRepository extends JpaRepository<CartItem, Long> {
             "group by user_id", nativeQuery = true)
     public Long findCartItemsCount(Long userId);
 
-    public List<CartItem> findByUserId(Long userId);
+    public CartItem findByUserId(Long userId);
 }

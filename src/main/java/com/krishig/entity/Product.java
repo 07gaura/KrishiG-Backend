@@ -36,4 +36,5 @@ public class Product {
 
     @Column(name = "active")
     private boolean isActive;
+
 }

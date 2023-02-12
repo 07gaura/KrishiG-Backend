@@ -2,19 +2,22 @@ package com.krishig.service.impl;
 
 import com.krishig.dto.req.CartItemsReqDto;
 import com.krishig.dto.res.CartItemResDto;
+import com.krishig.dto.res.CartProductResDto;
 import com.krishig.entity.CartItem;
+import com.krishig.entity.CartProduct;
 import com.krishig.entity.Product;
 import com.krishig.entity.User;
 import com.krishig.repository.CartItemRepository;
+import com.krishig.repository.CartProductRepository;
 import com.krishig.repository.ProductRepository;
 import com.krishig.repository.UserRepository;
+import com.krishig.repository.reposervice.CartProductService;
 import com.krishig.service.CartItemsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.text.SimpleDateFormat;
+import java.util.*;
 
 @Service
 public class CartItemsServiceImpl implements CartItemsService {
@@ -28,35 +31,52 @@ public class CartItemsServiceImpl implements CartItemsService {
     @Autowired
     private CartItemRepository cartItemRepository;
 
+    @Autowired
+    private CartProductRepository cartProductRepository;
+
+    @Autowired
+    private CartProductService cartProductService;
+
     @Override
-    public String saveCartItems(CartItemsReqDto cartItemsReqDto) {
-       CartItem cartItem = convertDtoToEntity(cartItemsReqDto);
-       cartItemRepository.save(cartItem);
-       return "Item added in cart";
+    public List<CartProductResDto> saveCartItems(CartItemsReqDto cartItemsReqDto) {
+        CartProduct cartProduct = null;
+        if(cartItemsReqDto.getCpId()!=null) {
+            cartProduct = cartProductRepository.findById(cartItemsReqDto.getCpId()).get();
+            cartProduct.setQuantity(cartItemsReqDto.getQuantity());
+        } else {
+            cartProduct = convertDtoToEntity(cartItemsReqDto);
+        }
+       cartProductRepository.save(cartProduct);
+       List<CartProductResDto> cartProductsRes = cartProductService.getProductsFromCart(cartItemsReqDto.getUserId());
+       return cartProductsRes;
     }
 
     @Override
-    public Long getCountByUserId(Long userId) {
-        Long count = cartItemRepository.findCartItemsCount(userId);
-        if(count == null) {
-            return 0L;
+    public Integer getCountByUserId(Long userId) {
+        List<CartProductResDto> cartProductsRes = cartProductService.getProductsFromCart(userId);
+        if(cartProductsRes.isEmpty()) {
+            return 0;
         }
 
-        return count;
+        return cartProductsRes.size();
     }
 
     @Override
-    public List<CartItemResDto> getCartItemProducts(Long userId) {
-        List<CartItem> cartItem = cartItemRepository.findByUserId(userId);
-        List<CartItemResDto> cartItemResDtos = convertEntityToDto(cartItem);
-        return cartItemResDtos;
+    public List<CartProductResDto> getCartItemProducts(Long userId) {
+        List<CartProductResDto> cartProductsRes = cartProductService.getProductsFromCart(userId);
+        return cartProductsRes;
+    }
+
+    @Override
+    public void deleteCartItems(Long itemId) {
+        cartProductRepository.deleteCartProduct(itemId);
     }
 
     private List<CartItemResDto> convertEntityToDto(List<CartItem> cartItems) {
         List<CartItemResDto> cartItemResDtos = new ArrayList<>();
         for(CartItem cartItem:cartItems) {
             CartItemResDto cartItemResDto = new CartItemResDto();
-            cartItemResDto.setCartItemId(cartItem.getId());
+            /*cartItemResDto.setCartItemId(cartItem.getId());
             cartItemResDto.setUserId(cartItem.getUser().getId());
             cartItemResDto.setAction(cartItem.getAction());
             cartItemResDto.setQuantity(cartItem.getQuantity());
@@ -64,24 +84,36 @@ public class CartItemsServiceImpl implements CartItemsService {
             cartItemResDto.setDescription(cartItem.getProduct().getDescription());
             cartItemResDto.setActualPrice(cartItem.getProduct().getActualPrice());
             cartItemResDto.setDiscount(cartItem.getProduct().getDiscount());
-            cartItemResDto.setProductName(cartItem.getProduct().getProductName());
+            cartItemResDto.setProductName(cartItem.getProduct().getProductName());*/
             cartItemResDtos.add(cartItemResDto);
         }
         return cartItemResDtos;
     }
 
-    private CartItem convertDtoToEntity(CartItemsReqDto cartItemsReqDto) {
-        CartItem cartItem = new CartItem();
-        Optional<User> user = userRepository.findById(cartItemsReqDto.getUserId());
-        if(user.isPresent()) {
-            cartItem.setUser(user.get());
+    private CartProduct convertDtoToEntity(CartItemsReqDto cartItemsReqDto) {
+        CartProduct cartProduct = new CartProduct();
+        if(cartItemsReqDto.getCpId() != null) {
+
         }
+        CartItem cartItem = cartItemRepository.findByUserId(cartItemsReqDto.getUserId());
+        cartProduct.setCartItem(cartItem);
         Optional<Product> product = productRepository.findById(cartItemsReqDto.getProductId());
         if(product.isPresent()) {
-            cartItem.setProduct(product.get());
+            cartProduct.setProduct(product.get());
         }
-        cartItem.setQuantity(cartItemsReqDto.getQuantity());
-        cartItem.setAction(cartItemsReqDto.getAction());
-        return cartItem;
+        cartProduct.setQuantity(cartItemsReqDto.getQuantity());
+        cartProduct.setStatus(cartItemsReqDto.getStatus());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        Date dateObj= null;
+        sdf.setTimeZone(TimeZone.getTimeZone("UTC"));
+        try {
+            dateObj = sdf.parse(sdf.format(new Date()));
+        } catch (java.text.ParseException e) {
+            e.printStackTrace();
+        }
+        cartProduct.setCreatedDate(dateObj);
+        User user = userRepository.findById(cartItemsReqDto.getUserId()).get();
+        cartProduct.setCreatedBy(user.getFirstName()+ " " +user.getLastName());
+        return cartProduct;
     }
 }
