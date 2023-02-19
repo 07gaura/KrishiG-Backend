@@ -38,22 +38,23 @@ public class CartItemsServiceImpl implements CartItemsService {
     private CartProductService cartProductService;
 
     @Override
-    public List<CartProductResDto> saveCartItems(CartItemsReqDto cartItemsReqDto) {
+    public CartItemResDto saveCartItems(CartItemsReqDto cartItemsReqDto) {
+        CartItemResDto cartItemResDto = new CartItemResDto();
         CartProduct cartProduct = null;
-        if(cartItemsReqDto.getCpId()!=null) {
-            cartProduct = cartProductRepository.findById(cartItemsReqDto.getCpId()).get();
+        Optional<CartProduct> dbCartProduct = cartProductRepository.findByProduct(cartItemsReqDto.getProductId());
+        if(dbCartProduct.isPresent()) {
+            cartProduct = dbCartProduct.get();
             cartProduct.setQuantity(cartItemsReqDto.getQuantity());
         } else {
             cartProduct = convertDtoToEntity(cartItemsReqDto);
         }
-       cartProductRepository.save(cartProduct);
-       List<CartProductResDto> cartProductsRes = cartProductService.getProductsFromCart(cartItemsReqDto.getUserId());
-       return cartProductsRes;
+        cartProductRepository.save(cartProduct);
+        return cartItemRes(cartItemsReqDto.getUserId());
     }
 
     @Override
     public Integer getCountByUserId(Long userId) {
-        List<CartProductResDto> cartProductsRes = cartProductService.getProductsFromCart(userId);
+        List<CartProduct> cartProductsRes = cartProductService.getProductsFromCart(userId);
         if(cartProductsRes.isEmpty()) {
             return 0;
         }
@@ -62,39 +63,45 @@ public class CartItemsServiceImpl implements CartItemsService {
     }
 
     @Override
-    public List<CartProductResDto> getCartItemProducts(Long userId) {
-        List<CartProductResDto> cartProductsRes = cartProductService.getProductsFromCart(userId);
-        return cartProductsRes;
+    public CartItemResDto getCartItemProducts(Long userId) {
+        return cartItemRes(userId);
     }
 
     @Override
-    public void deleteCartItems(Long itemId) {
+    public CartItemResDto deleteCartItems(Long itemId, Long userId) {
         cartProductRepository.deleteCartProduct(itemId);
+        return cartItemRes(userId);
     }
 
-    private List<CartItemResDto> convertEntityToDto(List<CartItem> cartItems) {
-        List<CartItemResDto> cartItemResDtos = new ArrayList<>();
-        for(CartItem cartItem:cartItems) {
-            CartItemResDto cartItemResDto = new CartItemResDto();
-            /*cartItemResDto.setCartItemId(cartItem.getId());
-            cartItemResDto.setUserId(cartItem.getUser().getId());
-            cartItemResDto.setAction(cartItem.getAction());
-            cartItemResDto.setQuantity(cartItem.getQuantity());
-            cartItemResDto.setProductId(cartItem.getProduct().getId());
-            cartItemResDto.setDescription(cartItem.getProduct().getDescription());
-            cartItemResDto.setActualPrice(cartItem.getProduct().getActualPrice());
-            cartItemResDto.setDiscount(cartItem.getProduct().getDiscount());
-            cartItemResDto.setProductName(cartItem.getProduct().getProductName());*/
-            cartItemResDtos.add(cartItemResDto);
+    @Override
+    public void updateStatus(Long userId) {
+        CartItem cartItem = cartItemRepository.findByUserId(userId);
+        List<CartProduct> cartProducts = cartProductRepository.findByCartItem(cartItem.getCartId());
+        for(CartProduct cartProduct : cartProducts) {
+            cartProduct.setStatus("closed");
+            cartProductRepository.save(cartProduct);
         }
-        return cartItemResDtos;
+    }
+
+    private List<CartProductResDto> convertEntityToDto(List<CartProduct> cartProducts) {
+        List<CartProductResDto> cartProductResDtos = new ArrayList<>();
+        for(CartProduct cartProduct:cartProducts) {
+            CartProductResDto cartProductResDto = new CartProductResDto();
+            cartProductResDto.setCpId(cartProduct.getCpId());
+            cartProductResDto.setQuantity(cartProduct.getQuantity());
+            cartProductResDto.setStatus(cartProduct.getStatus());
+            cartProductResDto.setProductId(cartProduct.getProduct().getId());
+            cartProductResDto.setProductName(cartProduct.getProduct().getProductName());
+            cartProductResDto.setActualPrice(cartProduct.getProduct().getActualPrice());
+            cartProductResDto.setDiscount(cartProduct.getProduct().getDiscount());
+            cartProductResDto.setDiscountPrice(cartProduct.getProduct().getDiscountPrice());
+            cartProductResDtos.add(cartProductResDto);
+        }
+        return cartProductResDtos;
     }
 
     private CartProduct convertDtoToEntity(CartItemsReqDto cartItemsReqDto) {
         CartProduct cartProduct = new CartProduct();
-        if(cartItemsReqDto.getCpId() != null) {
-
-        }
         CartItem cartItem = cartItemRepository.findByUserId(cartItemsReqDto.getUserId());
         cartProduct.setCartItem(cartItem);
         Optional<Product> product = productRepository.findById(cartItemsReqDto.getProductId());
@@ -115,5 +122,17 @@ public class CartItemsServiceImpl implements CartItemsService {
         User user = userRepository.findById(cartItemsReqDto.getUserId()).get();
         cartProduct.setCreatedBy(user.getFirstName()+ " " +user.getLastName());
         return cartProduct;
+    }
+
+    private CartItemResDto cartItemRes(Long userId) {
+        CartItemResDto cartItemResDto = new CartItemResDto();
+        List<CartProduct> cartProductsRes = cartProductService.getProductsFromCart(userId);
+        List<CartProductResDto> cartProductResDtos = convertEntityToDto(cartProductsRes);
+        CartItem cartItem = cartItemRepository.findByUserId(userId);
+        cartItemResDto.setUserId(userId);
+        cartItemResDto.setCartItemId(cartItem.getCartId());
+        cartItemResDto.setCartProductResDtoList(cartProductResDtos);
+        cartItemResDto.setCount(getCountByUserId(userId));
+        return cartItemResDto;
     }
 }

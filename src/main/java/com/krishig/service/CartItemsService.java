@@ -7,8 +7,9 @@ import com.krishig.dto.res.CartProductResDto;
 import java.util.List;
 
 public interface CartItemsService {
-    public List<CartProductResDto> saveCartItems(CartItemsReqDto cartItemsReqDto);
+    public CartItemResDto saveCartItems(CartItemsReqDto cartItemsReqDto);
     public Integer getCountByUserId(Long userId);
-    public List<CartProductResDto> getCartItemProducts(Long userId);
-    public void deleteCartItems(Long itemId);
+    public CartItemResDto getCartItemProducts(Long userId);
+    public CartItemResDto deleteCartItems(Long itemId, Long userId);
+    public void updateStatus(Long userId);
 }

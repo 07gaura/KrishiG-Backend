@@ -7,9 +7,6 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class CartItemsReqDto {
-    private Long userId;
-    private Long productId;
-    private int quantity;
-    private String status;
+public class PaymentReqDto {
+    private String paymentType;
 }

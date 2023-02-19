@@ -10,8 +10,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Builder
 public class CartProductResDto {
-    private Long userId;
-    private Long cartItemId;
     private Long cpId;
     private Long productId;
     private String productName;

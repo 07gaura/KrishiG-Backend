@@ -34,33 +34,17 @@ public class CartProductService extends BaseRepoService<CartProduct, Long> {
         return CartProduct.class;
     }
 
-    public List<CartProductResDto> getProductsFromCart(Long userId) {
+    public List<CartProduct> getProductsFromCart(Long userId) {
+        String status = "open";
         CriteriaBuilder criteriaBuilder = entityManager.getCriteriaBuilder();
-        CriteriaQuery<CartProductResDto> criteriaBuilderQuery = criteriaBuilder.createQuery(CartProductResDto.class);
-        Root<CartItem> root = criteriaBuilderQuery.from(CartItem.class);
+        CriteriaQuery<CartProduct> criteriaBuilderQuery = criteriaBuilder.createQuery(CartProduct.class);
+        Root<CartProduct> root = criteriaBuilderQuery.from(CartProduct.class);
         List<Predicate> predicates = new ArrayList<>();
-        Join<CartItem, User> userCartJoin = root.join("user");
-        Join<CartItem, CartProduct> cartProductJoin = root.join("cartProduct");
-        Join<CartProduct, Product> productJoin = cartProductJoin.join("product");
-        predicates.add(criteriaBuilder.equal(cartProductJoin.get("status"), "open"));
-        predicates.add(criteriaBuilder.equal(userCartJoin.get("id"), userId));
-        CompoundSelection<CartProductResDto> selection = null;
-        selection = criteriaBuilder.construct(CartProductResDto.class,
-               userCartJoin.get("id"),
-                root.get("cartId"),
-                cartProductJoin.get("cpId"),
-                productJoin.get("id"),
-                productJoin.get("productName"),
-                productJoin.get("actualPrice"),
-                productJoin.get("discount"),
-                productJoin.get("discountPrice"),
-                cartProductJoin.get("status"),
-                cartProductJoin.get("quantity")
-                );
-        criteriaBuilderQuery.select(selection).where(predicates.toArray(new Predicate[]{}));
-        criteriaBuilderQuery.orderBy(criteriaBuilder.desc(cartProductJoin.get("cpId")));
-        List<CartProductResDto> results = entityManager.createQuery(criteriaBuilderQuery).getResultList();
-        System.out.println(results);
+        Join<CartProduct, CartItem> cartProductJoin = root.join("cartItem");
+        predicates.add(criteriaBuilder.equal(cartProductJoin.get("user").get("id"), userId));
+        criteriaBuilderQuery.where(criteriaBuilder.equal(root.get("status"), status));
+        criteriaBuilderQuery.orderBy(criteriaBuilder.desc(root.get("cpId")));
+        List<CartProduct> results = entityManager.createQuery(criteriaBuilderQuery).getResultList();
         return results;
     }
 }

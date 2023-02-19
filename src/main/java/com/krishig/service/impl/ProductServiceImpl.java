@@ -20,7 +20,6 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductResDto> getProductByCategory(Category category) {
         List<Product> product = productRepository.findByCategory(category.getId());
-        System.out.println(product.get(0).getProductName());
         List<ProductResDto> lstProductRes = convertEntityToDto(product);
         return lstProductRes;
     }

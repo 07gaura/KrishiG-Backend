@@ -20,14 +20,15 @@ public class CartItemsController {
     private CartItemsService cartItemsService;
 
     @PutMapping("/items")
-    public ResponseEntity<List<CartProductResDto>> saveCartItems(@RequestBody CartItemsReqDto cartItemsReqDto) {
-        List<CartProductResDto> lstCartProducts = cartItemsService.saveCartItems(cartItemsReqDto);
-        return ResponseEntity.ok(lstCartProducts);
+    public ResponseEntity<CartItemResDto> saveCartItems(@RequestBody CartItemsReqDto cartItemsReqDto) {
+        CartItemResDto cartItemResDto = cartItemsService.saveCartItems(cartItemsReqDto);
+        return ResponseEntity.ok(cartItemResDto);
     }
 
-    @DeleteMapping("/items/{cpId}")
-    public void DeleteCartItems(@PathVariable("cpId") Long cpId) {
-        cartItemsService.deleteCartItems(cpId);
+    @DeleteMapping("/items/{cpId}/{userId}")
+    public ResponseEntity<CartItemResDto> DeleteCartItems(@PathVariable("cpId") Long cpId, @PathVariable("userId") Long userId) {
+        CartItemResDto cartItemResDto = cartItemsService.deleteCartItems(cpId, userId);
+        return ResponseEntity.ok(cartItemResDto);
     }
 
     @GetMapping("/count/{userId}")
@@ -37,9 +38,9 @@ public class CartItemsController {
     }
 
     @GetMapping("/product/{userId}")
-    public ResponseEntity<List<CartProductResDto>> getCartItemProducts(@PathVariable("userId") Long userId) {
-        List<CartProductResDto> cartProductResDtos = cartItemsService.getCartItemProducts(userId);
-        return ResponseEntity.ok(cartProductResDtos);
+    public ResponseEntity<CartItemResDto> getCartItemProducts(@PathVariable("userId") Long userId) {
+        CartItemResDto cartItemResDtos = cartItemsService.getCartItemProducts(userId);
+        return ResponseEntity.ok(cartItemResDtos);
     }
 
 }
