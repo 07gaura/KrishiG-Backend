@@ -26,7 +26,7 @@ public class WebConfig {
     public CorsFilter corsFilter() {
         final UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         final CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(List.of("http://localhost:3000","http://192.168.0.8:3000"));
+        config.setAllowedOrigins(List.of("http://localhost:3000","http://18.233.156.159:80"));
         config.setAllowedHeaders(List.of("Origin", "Content-Type", "Accept"));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "OPTIONS", "DELETE", "PATCH"));
         source.registerCorsConfiguration("/**", config);
